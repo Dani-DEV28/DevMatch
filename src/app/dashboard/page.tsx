@@ -445,7 +445,8 @@ export default function DashboardPage() {
       setUser(dbUser);
 
       // Check if user needs vision profile setup
-      if (!dbUser.domain_interests || dbUser.domain_interests.length === 0) {
+      const hasSkippedVisionSetup = localStorage.getItem(`vision_setup_skipped_${dbUser.id}`);
+      if ((!dbUser.domain_interests || dbUser.domain_interests.length === 0) && !hasSkippedVisionSetup) {
         setShowVisionSetup(true);
       }
 
@@ -574,6 +575,21 @@ export default function DashboardPage() {
             window.location.reload();
           }} 
         />
+        {/* Skip option */}
+        <div className="max-w-2xl mx-auto mt-4 text-center">
+          <button
+            onClick={() => {
+              setShowVisionSetup(false);
+              localStorage.setItem(`vision_setup_skipped_${user.id}`, "true");
+            }}
+            className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
+          >
+            Skip for now →
+          </button>
+          <p className="text-xs text-gray-400 mt-2">
+            You can complete this later in Settings
+          </p>
+        </div>
       </div>
     );
   }
