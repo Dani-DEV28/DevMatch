@@ -1,0 +1,313 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { MapPin, ExternalLink, LogOut, Loader2 } from 'lucide-react'
+import { supabase, User, Skill, Match } from '@/lib/insforge'
+import { mockCurrentUser, mockCurrentUserSkills, mockMatches } from '@/lib/mock-data'
+import { isDevBypassEnabled, isDevAuthenticated, getStoredDevUser, devSignOut } from '@/lib/dev-auth'
+
+// Match card component
+function MatchCard({ match }: { match: Match }) {
+  const getScoreColor = (score: number) => {
+    if (score >= 75) return 'bg-green-100 text-green-800 border-green-200'
+    if (score >= 50) return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    return 'bg-gray-100 text-gray-800 border-gray-200'
+  }
+
+  const getScoreLabel = (score: number) => {
+    if (score >= 75) return 'Excellent'
+    if (score >= 50) return 'Good'
+    return 'Fair'
+  }
+
+  return (
+    <Link href={`/profile/${match.userId}`}>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer">
+        <div className="flex items-start gap-4">
+          <img
+            src={match.avatar}
+            alt={match.name}
+            className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold text-gray-900 truncate">{match.name}</h3>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getScoreColor(match.matchScore)}`}>
+                {match.matchScore}%
+              </span>
+            </div>
+            
+            {match.location && (
+              <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span className="truncate">{match.location}</span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {match.skills.slice(0, 3).map((skill) => (
+                <span
+                  key={skill}
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    match.sharedSkills.includes(skill)
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {skill}
+                </span>
+              ))}
+              {match.skills.length > 3 && (
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                  +{match.skills.length - 3}
+                </span>
+              )}
+            </div>
+
+            {match.sharedSkills.length > 0 && (
+              <p className="text-xs text-indigo-600 mt-2">
+                Shared: {match.sharedSkills.join(', ')}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+// Profile card component
+function ProfileCard({ user, skills }: { user: User; skills: Skill[] }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="flex items-center gap-4">
+        <img
+          src={user.avatar_url}
+          alt={user.name}
+          className="w-20 h-20 rounded-full object-cover border-2 border-indigo-100"
+        />
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
+          {user.location && (
+            <div className="flex items-center gap-1 text-gray-500 mt-1">
+              <MapPin className="w-4 h-4" />
+              <span>{user.location}</span>
+            </div>
+          )}
+          <a
+            href={user.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mt-2"
+          >
+            View GitHub Profile
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+
+      {user.bio && (
+        <p className="text-gray-600 mt-4 text-sm leading-relaxed">{user.bio}</p>
+      )}
+
+      <div className="mt-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Skills</h3>
+        <div className="flex flex-wrap gap-2">
+          {skills.map((skill) => (
+            <span
+              key={skill.id}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100"
+            >
+              {skill.skill_name}
+              <span className="ml-1.5 text-indigo-400 text-xs">({skill.skill_count})</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function DashboardPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [skills, setSkills] = useState<Skill[]>([])
+  const [matches, setMatches] = useState<Match[]>([])
+  const [loading, setLoading] = useState(true)
+  const [useMockData, setUseMockData] = useState(true)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Check for dev bypass auth first
+        if (isDevBypassEnabled() && isDevAuthenticated()) {
+          const devUser = getStoredDevUser()
+          setUser(devUser || mockCurrentUser)
+          setSkills(mockCurrentUserSkills)
+          setMatches(mockMatches.sort((a, b) => b.matchScore - a.matchScore))
+          setLoading(false)
+          return
+        }
+
+        // Check if user is authenticated with Supabase
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        if (!authUser && !useMockData) {
+          router.push('/login')
+          return
+        }
+
+        if (useMockData) {
+          // Use mock data for development
+          setUser(mockCurrentUser)
+          setSkills(mockCurrentUserSkills)
+          setMatches(mockMatches.sort((a, b) => b.matchScore - a.matchScore))
+          setLoading(false)
+          return
+        }
+
+        // Fetch real data from Supabase
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser?.id)
+          .single()
+
+        const { data: skillsData } = await supabase
+          .from('skills')
+          .select('*')
+          .eq('user_id', authUser?.id)
+
+        // Fetch matches from API endpoint (Supabase Edge Function)
+        const { data: matchesData, error: functionError } = await supabase.functions.invoke(
+          'matches',
+          { body: { userId: authUser?.id } }
+        )
+
+        setUser(userData)
+        setSkills(skillsData || [])
+        setMatches(matchesData || [])
+      } catch (error) {
+        console.error('Error loading dashboard:', error)
+        // Fall back to mock data on error
+        setUser(mockCurrentUser)
+        setSkills(mockCurrentUserSkills)
+        setMatches(mockMatches.sort((a, b) => b.matchScore - a.matchScore))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [router, useMockData])
+
+  const handleSignOut = async () => {
+    // Sign out from dev bypass if active
+    if (isDevBypassEnabled() && isDevAuthenticated()) {
+      devSignOut()
+    }
+    // Sign out from Supabase
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <span className="font-bold text-xl text-gray-900">DevMatch</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {isDevBypassEnabled() && isDevAuthenticated() && (
+                <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded">
+                  DEV MODE
+                </span>
+              )}
+              <button
+                onClick={() => setUseMockData(!useMockData)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                {useMockData ? 'Using Mock Data' : 'Using Live Data'}
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column - Profile */}
+          <div className="lg:col-span-1">
+            <ProfileCard user={user} skills={skills} />
+          </div>
+
+          {/* Right column - Matches */}
+          <div className="lg:col-span-2">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Your Matches</h2>
+              <p className="text-gray-600 mt-1">
+                Developers with compatible skills based on your GitHub activity
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {matches.map((match) => (
+                <MatchCard key={match.userId} match={match} />
+              ))}
+            </div>
+
+            {matches.length === 0 && (
+              <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                <p className="text-gray-500">No matches found yet.</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Check back later as more developers join!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
