@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Users, Clock, ChevronRight, X, Send, Check, XCircle, Loader2 } from 'lucide-react'
+import { Plus, Users, Clock, ChevronRight, X, Send, Check, XCircle, Loader2, UserPlus, Sparkles } from 'lucide-react'
 import { insforge } from '@/lib/insforge'
 
 interface Project {
@@ -36,6 +36,8 @@ export default function ProjectBoard() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showApply, setShowApply] = useState(false)
   const [userId, setUserId] = useState<string>('')
+  const [matchedDevelopers, setMatchedDevelopers] = useState<any[]>([])
+  const [loadingMatches, setLoadingMatches] = useState(false)
 
   // Form states
   const [title, setTitle] = useState('')
@@ -71,6 +73,33 @@ export default function ProjectBoard() {
       console.error('Failed to load projects:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMatchedDevelopers = async (skills: string[], excludeOwnerId: string) => {
+    setLoadingMatches(true)
+    try {
+      const { data, error } = await insforge.functions.invoke('project-matches', {
+        method: 'POST',
+        body: { skills, excludeOwner: excludeOwnerId }
+      })
+      
+      if (!error && data?.success) {
+        setMatchedDevelopers(data.matches || [])
+      }
+    } catch (err) {
+      console.error('Failed to load matches:', err)
+    } finally {
+      setLoadingMatches(false)
+    }
+  }
+
+  const handleSelectProject = (project: Project) => {
+    setSelectedProject(project)
+    setMatchedDevelopers([])
+    // Load matched developers for this project
+    if (project.skills_needed.length > 0) {
+      loadMatchedDevelopers(project.skills_needed, project.owner_id)
     }
   }
 
@@ -187,7 +216,7 @@ export default function ProjectBoard() {
             <div
               key={project.id}
               className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedProject(project)}
+              onClick={() => handleSelectProject(project)}
             >
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-semibold text-lg text-gray-900">{project.title}</h3>
@@ -365,6 +394,74 @@ export default function ProjectBoard() {
                   <p className="text-xs text-gray-500">Collaborators</p>
                 </div>
               </div>
+              {/* Matched Developers Section */}
+              {selectedProject.skills_needed.length > 0 && (
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
+                      Recommended Collaborators
+                    </h4>
+                    <span className="text-xs text-gray-500">
+                      {matchedDevelopers.length} match{matchedDevelopers.length !== 1 ? 'es' : ''} found
+                    </span>
+                  </div>
+                  
+                  {loadingMatches ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                    </div>
+                  ) : matchedDevelopers.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {matchedDevelopers.slice(0, 5).map((dev) => (
+                        <div
+                          key={dev.id}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={dev.avatar_url || '/default-avatar.png'}
+                              alt={dev.name}
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{dev.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {dev.matchingSkills?.slice(0, 2).join(', ')}
+                                {dev.matchingSkills?.length > 2 && ` +${dev.matchingSkills.length - 2}`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              dev.matchScore >= 60 ? 'bg-green-100 text-green-700' :
+                              dev.matchScore >= 30 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {dev.matchScore}% match
+                            </span>
+                            {dev.personality_title && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <span>{
+                                  dev.personality_rarity === 'legendary' ? '👑' :
+                                  dev.personality_rarity === 'epic' ? '⚡' :
+                                  dev.personality_rarity === 'rare' ? '💎' : '📄'
+                                }</span>
+                                <span className="truncate max-w-[80px]">{dev.personality_title}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-3">
+                      No developers with matching skills found yet.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {selectedProject.status === 'open' && selectedProject.collaborators_current < selectedProject.collaborators_max && (
                 <button
                   onClick={() => setShowApply(true)}
