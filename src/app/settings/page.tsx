@@ -10,6 +10,8 @@ import {
   GraduationCap,
   Save,
   Check,
+  Calendar,
+  FlaskConical,
 } from "lucide-react";
 import { insforge, User as UserType } from "@/lib/insforge";
 import {
@@ -30,6 +32,7 @@ export default function SettingsPage() {
   // Form state
   const [displayName, setDisplayName] = useState("");
   const [isMentor, setIsMentor] = useState(false);
+  const [isEventOrganizer, setIsEventOrganizer] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -42,6 +45,8 @@ export default function SettingsPage() {
           // In dev mode, check localStorage for mentor status
           const storedMentor = localStorage.getItem("dev_mentor_status");
           setIsMentor(storedMentor === "true");
+          const storedEventOrganizer = localStorage.getItem("dev_event_organizer_status");
+          setIsEventOrganizer(storedEventOrganizer === "true");
           setLoading(false);
           return;
         }
@@ -103,6 +108,7 @@ export default function SettingsPage() {
       // In dev bypass mode, update localStorage
       if (isDevBypassEnabled() && isDevAuthenticated()) {
         localStorage.setItem("dev_mentor_status", isMentor.toString());
+        localStorage.setItem("dev_event_organizer_status", isEventOrganizer.toString());
         // Update the stored dev user name
         const devUser = getStoredDevUser() || mockCurrentUser;
         const updatedUser = { ...devUser, name: displayName };
@@ -294,6 +300,75 @@ export default function SettingsPage() {
                       <p className="text-sm text-purple-700 mt-1">
                         Other developers will see a mentor badge on your profile
                         and may reach out for help with their projects.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Event Organizer Settings Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Event Organizer
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Manage your event hosting capabilities
+                  </p>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                  <FlaskConical className="w-3.5 h-3.5" />
+                  Experimental
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-base font-medium text-gray-900">
+                    Enable Event Organizer Mode
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    When enabled, you can automatically sync events from Meetup
+                    and Luma to the DevMatch events page
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsEventOrganizer(!isEventOrganizer)}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                    isEventOrganizer ? "bg-orange-600" : "bg-gray-300"
+                  }`}
+                  role="switch"
+                  aria-checked={isEventOrganizer}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                      isEventOrganizer ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {isEventOrganizer && (
+                <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-100">
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-orange-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-900">
+                        Event Organizer mode is active
+                      </p>
+                      <p className="text-sm text-orange-700 mt-1">
+                        Your events from Meetup and Luma will be automatically
+                        linked to your DevMatch profile. This feature is
+                        experimental and may require additional setup.
                       </p>
                     </div>
                   </div>

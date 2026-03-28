@@ -357,7 +357,7 @@ export default function EventsPage() {
                     value={eventUrl}
                     onChange={(e) => setEventUrl(e.target.value)}
                     placeholder="https://lu.ma/your-event or https://meetup.com/..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                    className="flex-1 px-3 py-2 border border-blue-300 bg-white text-blue-600 placeholder-blue-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors"
                   />
                   <button
                     type="button"
@@ -393,7 +393,7 @@ export default function EventsPage() {
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   placeholder="e.g., Code & Coffee Seattle - April 2026"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="w-full px-3 py-2 border border-blue-300 bg-white text-blue-600 placeholder-blue-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   required
                 />
               </div>
@@ -407,7 +407,7 @@ export default function EventsPage() {
                   onChange={(e) => setEventDescription(e.target.value)}
                   placeholder="What's this event about?"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none"
+                  className="w-full px-3 py-2 border border-blue-300 bg-white text-blue-600 placeholder-blue-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none transition-colors"
                 />
               </div>
 
@@ -420,7 +420,7 @@ export default function EventsPage() {
                     type="datetime-local"
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full px-3 py-2 border border-blue-300 bg-white text-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   />
                 </div>
                 <div>
@@ -430,7 +430,7 @@ export default function EventsPage() {
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full px-3 py-2 border border-blue-300 bg-white text-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   >
                     <option value="other">Other</option>
                     <option value="luma">Luma</option>
@@ -490,7 +490,7 @@ export default function EventsPage() {
                   }
                   placeholder="ABC123"
                   maxLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-center text-2xl font-mono font-bold tracking-widest"
+                  className="w-full px-4 py-3 border border-blue-300 bg-white text-blue-600 placeholder-blue-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-center text-2xl font-mono font-bold tracking-widest transition-colors"
                   autoFocus
                 />
                 {joinError && (

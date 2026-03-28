@@ -377,7 +377,7 @@ export default function EventDetailClient({ eventId }: { eventId: string }) {
               {/* Copy Join Code */}
               <button
                 onClick={copyCode}
-                className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-black hover:bg-gray-50"
               >
                 {codeCopied ? (
                   <Check className="w-4 h-4 text-green-600" />
@@ -391,7 +391,7 @@ export default function EventDetailClient({ eventId }: { eventId: string }) {
               {/* Copy Join Link */}
               <button
                 onClick={copyJoinLink}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-black hover:bg-gray-50"
               >
                 {linkCopied ? (
                   <Check className="w-4 h-4 text-green-600" />
@@ -656,7 +656,7 @@ export default function EventDetailClient({ eventId }: { eventId: string }) {
                   onChange={(e) => setCsvText(e.target.value)}
                   placeholder={"octocat\ndefunkt\nmojombo"}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none font-mono text-sm"
+                  className="w-full px-3 py-2 border border-blue-300 bg-white text-blue-600 placeholder-blue-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-mono text-sm transition-colors"
                 />
               </div>
 
