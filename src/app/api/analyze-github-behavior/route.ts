@@ -373,31 +373,146 @@ function analyzeBuilderPhilosophy(repos: any[]): { philosophy: BehavioralSignals
   return { philosophy: "hacker", score };
 }
 
+// Topic to domain mapping for meaningful curiosity areas
+const TOPIC_TO_DOMAIN: Record<string, string> = {
+  // AI/ML
+  "machine-learning": "AI & Machine Learning",
+  "deep-learning": "AI & Machine Learning",
+  "neural-network": "AI & Machine Learning",
+  "nlp": "AI & Machine Learning",
+  "computer-vision": "AI & Machine Learning",
+  "tensorflow": "AI & Machine Learning",
+  "pytorch": "AI & Machine Learning",
+  "openai": "AI & Machine Learning",
+  "llm": "AI & Machine Learning",
+  "artificial-intelligence": "AI & Machine Learning",
+  
+  // Web Development
+  "react": "Web Development",
+  "vue": "Web Development",
+  "angular": "Web Development",
+  "nextjs": "Web Development",
+  "frontend": "Web Development",
+  "backend": "Web Development",
+  "fullstack": "Web Development",
+  "web": "Web Development",
+  "javascript": "Web Development",
+  "typescript": "Web Development",
+  "css": "Web Development",
+  "html": "Web Development",
+  
+  // Mobile
+  "ios": "Mobile Development",
+  "android": "Mobile Development",
+  "react-native": "Mobile Development",
+  "flutter": "Mobile Development",
+  "mobile": "Mobile Development",
+  "swift": "Mobile Development",
+  "kotlin": "Mobile Development",
+  
+  // DevOps/Infrastructure
+  "docker": "DevOps & Infrastructure",
+  "kubernetes": "DevOps & Infrastructure",
+  "aws": "DevOps & Infrastructure",
+  "cloud": "DevOps & Infrastructure",
+  "devops": "DevOps & Infrastructure",
+  "ci-cd": "DevOps & Infrastructure",
+  "terraform": "DevOps & Infrastructure",
+  "infrastructure": "DevOps & Infrastructure",
+  
+  // Data
+  "database": "Data & Databases",
+  "sql": "Data & Databases",
+  "postgresql": "Data & Databases",
+  "mongodb": "Data & Databases",
+  "redis": "Data & Databases",
+  "data-science": "Data & Databases",
+  "analytics": "Data & Databases",
+  "big-data": "Data & Databases",
+  
+  // Security
+  "security": "Security & Privacy",
+  "cryptography": "Security & Privacy",
+  "blockchain": "Security & Privacy",
+  "web3": "Security & Privacy",
+  "encryption": "Security & Privacy",
+  
+  // Systems
+  "rust": "Systems Programming",
+  "go": "Systems Programming",
+  "c": "Systems Programming",
+  "cpp": "Systems Programming",
+  "systems": "Systems Programming",
+  "linux": "Systems Programming",
+  "kernel": "Systems Programming",
+  
+  // Creative/Graphics
+  "game-development": "Games & Graphics",
+  "unity": "Games & Graphics",
+  "unreal-engine": "Games & Graphics",
+  "graphics": "Games & Graphics",
+  "webgl": "Games & Graphics",
+  "threejs": "Games & Graphics",
+  "gamedev": "Games & Graphics",
+  
+  // Tools/Productivity
+  "cli": "Developer Tools",
+  "vscode": "Developer Tools",
+  "editor": "Developer Tools",
+  "tooling": "Developer Tools",
+  "automation": "Developer Tools",
+  "productivity": "Developer Tools",
+  
+  // Open Source/Community
+  "open-source": "Open Source",
+  "community": "Open Source",
+  "documentation": "Open Source",
+  "hacktoberfest": "Open Source",
+};
+
 function analyzeCuriosity(starred: any[]): { areas: string[]; score: number } {
-  const topicCounts: Record<string, number> = {};
+  const domainCounts: Record<string, number> = {};
   
   for (const repo of starred) {
+    // Map topics to domains
     for (const topic of repo.topics || []) {
-      topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+      const domain = TOPIC_TO_DOMAIN[topic.toLowerCase()];
+      if (domain) {
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      }
     }
     
-    // Also analyze language
+    // Map languages to domains
     if (repo.language) {
-      topicCounts[repo.language.toLowerCase()] = (topicCounts[repo.language.toLowerCase()] || 0) + 1;
+      const lang = repo.language.toLowerCase();
+      const domain = TOPIC_TO_DOMAIN[lang];
+      if (domain) {
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      }
+    }
+    
+    // Analyze description for domain keywords
+    if (repo.description) {
+      const desc = repo.description.toLowerCase();
+      for (const [keyword, domain] of Object.entries(TOPIC_TO_DOMAIN)) {
+        if (desc.includes(keyword)) {
+          domainCounts[domain] = (domainCounts[domain] || 0) + 0.5; // Lower weight for description matches
+        }
+      }
     }
   }
 
-  // Get top interest areas
-  const sortedTopics = Object.entries(topicCounts)
+  // Get top interest areas (meaningful domains)
+  const sortedDomains = Object.entries(domainCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
-    .map(([topic]) => topic);
+    .map(([domain]) => domain);
 
   // Score based on diversity
-  const uniqueTopics = Object.keys(topicCounts).length;
-  const score = Math.min(uniqueTopics * 5, 100);
+  const uniqueDomains = Object.keys(domainCounts).length;
+  const score = Math.min(uniqueDomains * 15, 100); // Higher weight for domain diversity
 
-  return { areas: sortedTopics, score };
+  return { areas: sortedDomains, score };
 }
 
 function analyzeCompletionTendency(repos: any[]): { tendency: BehavioralSignals["completionTendency"]; score: number } {
