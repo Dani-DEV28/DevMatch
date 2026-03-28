@@ -77,6 +77,18 @@ export default function SetupProfileButton() {
       <p className="text-sm text-blue-700 mb-3">
         Analyze your GitHub repos to generate skills and personality card.
       </p>
+      <div className="text-xs text-blue-600 mb-3 bg-blue-100 p-2 rounded">
+        <strong>Need a token?</strong> Go to{' '}
+        <a 
+          href="https://github.com/settings/tokens" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="underline hover:text-blue-800"
+        >
+          GitHub Settings → Developer settings → Personal access tokens
+        </a>
+        . Create a token with <code>read:user</code> and <code>public_repo</code> scopes.
+      </div>
       <button
         onClick={setupProfile}
         disabled={loading}
