@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { insforge } from '@/lib/insforge'
 import { isDevBypassEnabled, devSignIn, isDevAuthenticated } from '@/lib/dev-auth'
+import GitHubMatcher from '@/components/GitHubMatcher'
 
 // GitHub SVG icon
 const GitHubIcon = ({ className }: { className?: string }) => (
@@ -52,8 +53,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 px-4 py-8">
+      <div className="max-w-md w-full mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           <div className="mb-6">
             <div className="w-16 h-16 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -135,6 +136,11 @@ export default function LoginPage() {
             <span className="font-semibold text-indigo-600">InsForge</span>
           </p>
         </div>
+      </div>
+
+      {/* Try Without Login Section */}
+      <div className="max-w-2xl w-full mx-auto mt-8">
+        <GitHubMatcher />
       </div>
     </div>
   )
