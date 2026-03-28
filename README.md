@@ -1,123 +1,89 @@
 # DevMatch
 
-> Your code writes your dating profile. GitHub-powered vibe matching for developer communities.
+> Vision-first developer matching. Find collaborators who share your values, not just your stack.
 
 [![Built with Qoder](https://img.shields.io/badge/Built%20with-Qoder-blue)](https://qoder.dev)
 [![Powered by InsForge](https://img.shields.io/badge/Powered%20by-InsForge-purple)](https://insforge.dev)
 
 ## The Problem
 
-You walk into a meetup with 50 developers. You have no idea who works in your stack, who's looking for collaborators, or who you'd actually vibe with. You default to whoever's standing nearest and hope for the best.
+You walk into a meetup with 50 developers. You have no idea who shares your vision, who's looking for collaborators, or who you'd actually vibe with. You default to whoever's standing nearest and hope for the best.
 
-DevMatch fixes this. Sign in with GitHub, and your repos do the talking. We extract your actual tech stack, assign you a developer personality archetype, and match you with compatible developers — scored, ranked, and explained.
+DevMatch fixes this. Sign in with GitHub, answer a few vibe check questions, and discover developers who align with your values, work style, and dream projects — not just your tech stack.
 
-No forms. No self-reported skills. Just code.
+Vision-first. Values-based. Actually human.
 
-## How Vibe Matching Works
+## How Vision-First Matching Works
 
-DevMatch doesn't ask what you know — it reads what you build.
+DevMatch goes beyond skills — we match based on values, vision, and vibe.
 
-### 1. Skill Extraction
+### 1. Vibe Check
 
-When you sign in, we analyze your last 10 GitHub repos. An AI pipeline (InsForge AI Gateway + GPT-4o-mini) categorizes your languages into four domains:
+Answer 5 quick questions about your work style:
+- What problems bore you?
+- What's your natural team role?
+- Your preferred shipping timeline?
+- Most overhyped tech?
+- Ideal collaboration style?
 
-| Domain | Example Skills |
-|--------|---------------|
-| **Frontend** | React, Vue, Angular, TypeScript, Next.js, Tailwind |
-| **Backend** | Node.js, Python, Django, Go, Java, PostgreSQL, Redis |
-| **DevOps** | AWS, Docker, Kubernetes, Terraform, CI/CD |
-| **AI/ML** | TensorFlow, PyTorch, Machine Learning, OpenAI |
+These responses create your "Digital DNA" — a behavioral fingerprint for matching.
 
-### 2. Personality Archetypes
+### 2. Developer Archetypes
 
-Based on your skill distribution, you're assigned one of 8 developer archetypes:
+Based on your vibe check and GitHub activity, you're assigned one of 8 archetypes:
 
 | Archetype | Rarity | Who You Are |
 |-----------|--------|-------------|
-| Frontend Artisan | Rare | Lives in components and design systems |
-| Systems Architect | Rare | Backend-first, infrastructure-minded |
-| Full Stack Wizard | Epic | Comfortable anywhere in the stack |
-| DevOps Engineer | Rare | Pipelines, containers, and uptime |
-| Mobile Developer | Rare | Native and cross-platform builder |
-| Game Creator | Legendary | Unity, Unreal, and interactive worlds |
-| AI Specialist | Epic | Models, data, and machine intelligence |
-| Polyglot Developer | Epic | Writes production code in 3+ categories |
+| 🔮 Visionary | Legendary | Sees the future and builds toward it |
+| ✨ Polisher | Epic | Perfects every detail before shipping |
+| 🏗️ Systems Thinker | Rare | Architects robust infrastructure |
+| 🔗 Connector | Rare | Brings people and ideas together |
+| 🎨 Vibe Curator | Epic | Crafts experiences with aesthetic sense |
+| 🤖 Prompt Architect | Legendary | Masters AI tools and workflows |
+| ⚡ Hacker | Common | Ships fast and iterates |
+| 🛡️ Protector | Rare | Guards code quality and best practices |
 
-Personality is auto-calculated by a database trigger whenever your skills change. The rarity system (Common / Rare / Epic / Legendary) makes profiles feel unique.
+Rarity tiers (Common / Rare / Epic / Legendary) make profiles feel unique and collectible.
 
-### 3. Match Scoring
+### 3. Project Visions
 
-Every developer is scored against you using three factors:
+Share your dream project — what you'd build with unlimited resources. This becomes the centerpiece of your profile and helps find collaborators who share your passion.
 
-| Factor | Points | Logic |
-|--------|--------|-------|
-| Shared skills | +15 each | You both use React? That's 15 points. |
-| Complementary skills | +10 each | You do frontend, they do backend? Bonus. |
-| Location match | +10 flat | Same city and not "Remote". |
+### 4. Multi-Factor Matching
 
-Your top 10 matches are returned, sorted by score. Each match card shows the exact shared skills so you know *why* you matched — not just *that* you matched.
+Every match is scored using:
 
-### 4. Event-Scoped Matching
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| **Vibe Alignment** | 30% | Shared values from vibe check responses |
+| **Archetype Complementarity** | 25% | Compatible work styles |
+| **Vision Resonance** | 25% | Similar domain interests and dream projects |
+| **Digital DNA** | 20% | Behavioral signals from GitHub activity |
 
-Global matches are useful, but the real power is at events. Create an Event Session from a Luma or Meetup link, share the 6-character join code, and matching runs **scoped to that event's attendees only**.
-
-"Who should I talk to at *this* meetup?" — answered before you walk in the door.
+Each match shows *why* you matched with detailed breakdowns.
 
 ## Features
 
 ### Core Matching
-- **Auto skill extraction** from GitHub repos via AI categorization
-- **Personality archetypes** with rarity tiers (Common through Legendary)
-- **Scored compatibility** with transparent "why you matched" labels
-- **Real-time notifications** when a compatible developer joins (WebSocket)
+- **Vibe Check** — 5-question onboarding to capture your work style and values
+- **Developer Archetypes** — personality types with rarity tiers (Common through Legendary)
+- **Project Visions** — share your dream project to find like-minded collaborators
+- **Digital DNA** — behavioral analysis of your GitHub activity patterns
+- **Multi-factor scoring** — vibe + archetype + vision + behavior for better matches
+- **Real-time notifications** when compatible developers join (WebSocket)
 
 ### Event Sessions
 - **Create from links** — paste a Luma or Meetup URL, metadata auto-fills
-- **Join by code** — 6-character code displayed at the meetup (project it, put it on a sticker)
+- **Join by code** — 6-character code displayed at the meetup
 - **Scoped matches** — only see matches among event attendees
 - **CSV import** — organizers can bulk-import attendees by GitHub username
 - **Share link** — one-click copy of join code or event URL
 
-### Project Board
-- **Post projects** — define what you're building and what skills you need
-- **Smart matching** — algorithm finds developers with matching or related skills
-- **Apply to join** — developers apply with an optional message
-- **Skill relationships** — knows that React developers probably know JavaScript
-
 ### Profile & Settings
+- **Enhanced Profile Pages** — personality card, Digital DNA, vibe check results, project visions
 - **GitHub Matcher** — search any GitHub username and see their matches (no login required)
-- **Profile pages** — full skill breakdown, personality card, shared skill highlighting
-- **Settings** — edit display name, toggle mentor and event organizer status
-
-## Quick Start
-
-```bash
-git clone https://github.com/Dani-DEV28/DevMatch.git
-cd DevMatch
-npm install
-```
-
-Create a `.env` file:
-
-```env
-NEXT_PUBLIC_INSFORGE_BASE_URL=https://your-app.insforge.app
-NEXT_PUBLIC_INSFORGE_ANON_KEY=your-anon-key
-GITHUB_TOKEN=ghp_...  # optional, increases GitHub API rate limit
-```
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-For UI development without GitHub OAuth:
-
-```bash
-npm run dev:bypass
-```
-
-This enables a "Dev Bypass" button on the login page that loads mock data.
+- **Settings** — edit bio, dream project, availability, project status, and vibe check responses
+- **Social Links** — add LinkedIn and Google Scholar profiles
 
 ## Architecture
 
@@ -126,7 +92,7 @@ This enables a "Dev Bypass" button on the login page that loads mock data.
   ┌──────────────────────────────────────────────────┐
   │                   Next.js 15                      │
   │                                                   │
-  │  /login ── /dashboard ── /events ── /projects     │
+  │  /login ── /dashboard ── /events ── /profile      │
   │  /profile/[id] ── /events/[id] ── /settings       │
   │                                                   │
   │  API Routes:                                      │
@@ -138,47 +104,48 @@ This enables a "Dev Bypass" button on the login page that loads mock data.
               ┌───────┴────────┐
               │  InsForge BaaS │
               │                │
-              │  PostgreSQL    │──── users, skills, events,
-              │  Auth (OAuth)  │     event_participants,
-              │  AI Gateway    │     projects, project_applications
+              │  PostgreSQL    │──── users, vibe_check_responses,
+              │  Auth (OAuth)  │     user_taste_profiles, events,
+              │  AI Gateway    │     event_participants, project_visions
               │  Edge Functions│
               │  WebSocket     │
               └────────────────┘
                       │
-         ┌────────────┼────────────┐
-         │            │            │
-    ┌────┴───┐  ┌─────┴────┐  ┌───┴────┐
-    │matches │  │  events   │  │projects│
-    │function│  │ function  │  │function│
-    └────────┘  └──────────┘  └────────┘
-    + match-github-user, setup-user, project-matches
+         ┌────────────┼─────────────────────────┐
+         │            │                         │
+    ┌────┴────────┐ ┌─┴──────────┐      ┌──────┴──────┐
+    │taste-based  │ │  events    │      │ match-github│
+    │matches      │ │  function  │      │ user        │
+    │function     │ │            │      │             │
+    └─────────────┘ └────────────┘      └─────────────┘
+    + setup-user
 ```
 
 ## Edge Functions
 
 | Function | Purpose |
 |----------|---------|
-| `matches` | Core matching algorithm. Accepts optional `eventId` to scope to event participants. |
-| `match-github-user` | Public GitHub user analysis — no login required. Extracts skills, calculates personality, finds matches. |
-| `setup-user` | Initializes user profile after OAuth. Fetches repos, extracts languages, stores skills. |
+| `taste-based-matches` | Vision-first matching algorithm using vibe check + archetype + Digital DNA. Accepts optional `eventId`. |
+| `match-github-user` | Public GitHub user analysis — no login required. Extracts behavioral signals, finds matches. |
+| `setup-user` | Initializes user profile after OAuth. Creates taste profile and default vibe check. |
 | `events` | Event CRUD, join by code, lookup, participant management, CSV import. |
-| `projects` | Project board CRUD, applications, collaborator management. |
-| `project-matches` | Finds developers matching a project's required skills using skill relationship mapping. |
 
 ## Database
 
-6 tables, all auto-provisioned by InsForge:
+10 tables, all auto-provisioned by InsForge:
 
 | Table | Purpose |
 |-------|---------|
-| `users` | GitHub profiles + personality archetype fields |
-| `skills` | Extracted skill categories with repo counts |
+| `users` | GitHub profiles + archetype + personality + vision fields |
+| `vibe_check_responses` | User's 5 vibe check answers |
+| `user_taste_profiles` | Digital DNA behavioral signals |
+| `project_visions` | User's dream project postings |
+| `vision_resonances` | Matches between compatible visions |
 | `events` | Event sessions with join codes and metadata |
 | `event_participants` | Users joined to events |
-| `projects` | Collaboration board postings |
+| `projects` | Legacy project board postings |
 | `project_applications` | Applications to join projects |
-
-A database trigger (`skills_update_personality`) auto-calculates personality type whenever skills are inserted, updated, or deleted.
+| `skills` | Legacy extracted skill categories |
 
 ## Project Structure
 
@@ -186,48 +153,51 @@ A database trigger (`skills_update_personality`) auto-calculates personality typ
 src/
   app/
     login/              GitHub OAuth + GitHubMatcher
-    dashboard/          Profile card + match feed + real-time toasts
+    dashboard/          Profile card + match feed + vibe check modal
     events/             Event listing + create/join modals
     events/[id]/        Event detail + scoped matches + CSV import
-    profile/[id]/       Developer profile with shared skill highlighting
-    projects/           Project board
-    settings/           User preferences
+    profile/[id]/       Enhanced profile with personality, DNA, visions
+    settings/           Edit profile, vibe check, and preferences
     api/
       analyze-github/   AI-powered skill extraction
+      analyze-github-behavior/  Digital DNA analysis
       github-user/      GitHub API proxy
       parse-event/      Luma/Meetup metadata scraper
   components/
     GitHubMatcher       Public GitHub user search + matching
     PersonalityCard     Archetype display with rarity badge
-    ProjectBoard        Full project collaboration UI
+    DigitalDNA          Behavioral signals visualization
+    VibeCheck           5-question onboarding flow
+    VisionCard          Project vision display
+    VisionProfileSetup  Archetype and vision setup
+    CreateVisionCard    Create new project vision
+    SynergyRadar        Match compatibility radar chart
+    SocialLinks         LinkedIn/Google Scholar integration
     SetupProfileButton  GitHub token-based profile setup
     RealtimeToast       Live match + activity notifications
   hooks/
     useRealtime         WebSocket subscription for match events
   lib/
     insforge            SDK client + shared TypeScript types
+    archetypes          Archetype definitions and helpers
     dev-auth            Development bypass authentication
-    mock-data           9 mock users + skills + matches
-insforge/
-  functions/
-    matches/            Core matching algorithm
-    match-github-user/  Public GitHub analysis
-    setup-user/         Profile initialization
-    events/             Event session management
-    projects/           Project board API
-    project-matches/    Skill-based project matching
+    mock-data           Mock users + matches for testing
+edge-functions/
+  taste-based-matches.js  Core vision-first matching algorithm
+scripts/
+  seed-demo-data.js   Demo user data definitions
+  insert-demo-data.js Database seeding script
 ```
 
 ## Tech Stack
 
 | Layer | Technology | Role |
 |-------|-----------|------|
-| Frontend | Next.js 15 + Tailwind CSS 3.4 | App Router, SSR, client components |
+| Frontend | Next.js 15 + React 19 + Tailwind CSS 3.4 | App Router, SSR, client components |
 | Icons | lucide-react | Consistent iconography |
-| Fonts | Geist Sans + Geist Mono | Clean, modern typography |
 | Backend | InsForge BaaS | PostgreSQL, Auth, AI, Edge Functions, WebSocket |
 | Auth | GitHub OAuth (PKCE) | Automatic session management |
-| AI | InsForge AI Gateway (GPT-4o-mini) | Skill categorization |
+| AI | InsForge AI Gateway | Behavioral analysis |
 | Real-time | InsForge WebSocket | Match and activity notifications |
 
 ## The Qoder + InsForge Story
@@ -258,6 +228,47 @@ Code & Coffee — a 3,500-member developer community. DevMatch is built for real
 - **Dev 1** — Auth, GitHub integration, skill extraction pipeline
 - **Dev 2** — Matching algorithm, project board, edge functions
 - **Dev 3** — Frontend UI/UX, event sessions, codebase consolidation
+
+## Development
+
+### Quick Start
+
+```bash
+git clone https://github.com/Dani-DEV28/DevMatch.git
+cd DevMatch
+npm install
+```
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_INSFORGE_BASE_URL=https://your-app.insforge.app
+NEXT_PUBLIC_INSFORGE_ANON_KEY=your-anon-key
+```
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+For UI development without GitHub OAuth:
+
+```bash
+npm run dev:bypass
+```
+
+This enables a "Dev Bypass" button on the login page that loads mock data.
+
+### Demo Data
+
+Seed the database with demo users for testing:
+
+```bash
+node scripts/insert-demo-data.js
+```
+
+This creates 6 demo users with complete profiles, vibe checks, and project visions.
 
 ## License
 

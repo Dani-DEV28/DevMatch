@@ -24,7 +24,7 @@ import {
   devSignOut,
 } from "@/lib/dev-auth";
 import PersonalityCard from "@/components/PersonalityCard";
-import SetupProfileButton from "@/components/SetupProfileButton";
+
 import VisionProfileSetup from "@/components/VisionProfileSetup";
 import VisionCard from "@/components/VisionCard";
 import CreateVisionCard from "@/components/CreateVisionCard";
@@ -665,7 +665,6 @@ export default function DashboardPage() {
                 github_url: user.html_url || undefined,
               }}
             />
-            <SetupProfileButton />
           </div>
 
           {/* Right column - Matches */}
