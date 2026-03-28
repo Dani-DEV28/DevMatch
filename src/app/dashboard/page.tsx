@@ -10,6 +10,7 @@ import {
   Loader2,
   Sparkles,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import { insforge, User, Skill, Match } from "@/lib/insforge";
 
@@ -487,6 +488,13 @@ export default function DashboardPage() {
                   DEV MODE
                 </span>
               )}
+              <Link
+                href="/settings"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
