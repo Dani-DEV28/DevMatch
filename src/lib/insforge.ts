@@ -13,10 +13,21 @@ export type User = {
   bio: string | null;
   location: string | null;
   html_url: string | null;
+  // Legacy personality fields
   personality_type?: string;
   personality_title?: string;
   personality_description?: string;
   personality_rarity?: "common" | "rare" | "epic" | "legendary";
+  // New vision-first fields
+  archetype?: string;
+  domain_interests?: string[];
+  builder_philosophy?: string;
+  ai_workflow?: string;
+  dream_project?: string;
+  project_status?: string;
+  looking_for_roles?: string[];
+  availability?: string;
+  experience_level?: string;
 };
 
 export type Skill = {

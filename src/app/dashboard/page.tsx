@@ -9,14 +9,10 @@ import {
   LogOut,
   Loader2,
   Sparkles,
-  RefreshCw,
 } from "lucide-react";
-import { insforge, User, Skill, Match } from "@/lib/insforge";
-
-// Use the shared insforge client for consistent session handling
+import { insforge, User, Match } from "@/lib/insforge";
 import {
   mockCurrentUser,
-  mockCurrentUserSkills,
   mockMatches,
 } from "@/lib/mock-data";
 import {
@@ -27,6 +23,14 @@ import {
 } from "@/lib/dev-auth";
 import PersonalityCard from "@/components/PersonalityCard";
 import SetupProfileButton from "@/components/SetupProfileButton";
+import VisionProfileSetup from "@/components/VisionProfileSetup";
+import VisionCard from "@/components/VisionCard";
+import CreateVisionCard from "@/components/CreateVisionCard";
+import DigitalDNA from "@/components/DigitalDNA";
+import VibeCheck from "@/components/VibeCheck";
+import SynergyRadar, { tasteProfileToRadarData } from "@/components/SynergyRadar";
+import SocialLinks from "@/components/SocialLinks";
+import { getArchetype, type ArchetypeType, DOMAIN_INTERESTS, BUILDER_PHILOSOPHIES } from "@/lib/archetypes";
 
 // --- Helper functions ---
 
@@ -57,13 +61,32 @@ function getRarityEmoji(rarity: string) {
 }
 
 // --- MatchCard component ---
+interface EnhancedMatch extends Match {
+  archetype?: string;
+  domainInterests?: string[];
+  breakdown?: Record<string, number>;
+  synergyType?: string;
+}
 
-function MatchCard({ match }: { match: Match }) {
+function MatchCard({ match, userRadar }: { match: EnhancedMatch; userRadar?: any }) {
   const getScoreColor = (score: number) => {
     if (score >= 75) return "bg-green-100 text-green-800 border-green-200";
     if (score >= 50) return "bg-yellow-100 text-yellow-800 border-yellow-200";
     return "bg-gray-100 text-gray-800 border-gray-200";
   };
+
+  const getSynergyBadge = (type?: string) => {
+    switch (type) {
+      case "complementary":
+        return { text: "✨ Complementary", class: "bg-purple-100 text-purple-700" };
+      case "similar":
+        return { text: "🤝 Similar Style", class: "bg-blue-100 text-blue-700" };
+      default:
+        return { text: "⚖️ Balanced", class: "bg-gray-100 text-gray-700" };
+    }
+  };
+
+  const synergyBadge = getSynergyBadge(match.synergyType);
 
   return (
     <Link href={`/profile/${match.userId}`}>
@@ -93,6 +116,29 @@ function MatchCard({ match }: { match: Match }) {
               </div>
             )}
 
+            {/* Archetype Badge */}
+            {match.archetype && (
+              <div className="mt-2">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${synergyBadge.class}`}>
+                  {synergyBadge.text}
+                </span>
+              </div>
+            )}
+
+            {/* Domain Interests */}
+            {match.domainInterests && match.domainInterests.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {match.domainInterests.slice(0, 3).map((interest) => (
+                  <span
+                    key={interest}
+                    className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-600"
+                  >
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {match.personality && (
               <div
                 className={`mt-2 px-2 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 ${getRarityColor(match.personality.rarity)}`}
@@ -105,30 +151,18 @@ function MatchCard({ match }: { match: Match }) {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {match.skills.slice(0, 3).map((skill) => (
-                <span
-                  key={skill}
-                  className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    match.sharedSkills.includes(skill)
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {skill}
-                </span>
-              ))}
-              {match.skills.length > 3 && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
-                  +{match.skills.length - 3}
-                </span>
-              )}
-            </div>
-
-            {match.sharedSkills.length > 0 && (
-              <p className="text-xs text-indigo-600 mt-2">
-                Shared: {match.sharedSkills.join(", ")}
-              </p>
+            {/* Score Breakdown */}
+            {match.breakdown && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-1 text-xs">
+                  {Object.entries(match.breakdown).slice(0, 3).map(([key, value]) => (
+                    <div key={key} className="text-center">
+                      <div className="font-semibold text-gray-700">{value}</div>
+                      <div className="text-gray-400 capitalize">{key}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -141,14 +175,8 @@ function MatchCard({ match }: { match: Match }) {
 
 function ProfileCard({
   user,
-  skills,
-  analyzing,
-  onAnalyze,
 }: {
   user: User;
-  skills: Skill[];
-  analyzing: boolean;
-  onAnalyze: () => void;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -188,41 +216,34 @@ function ProfileCard({
         </p>
       )}
 
-      <div className="mt-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-gray-900">Your Skills</h3>
-          <button
-            onClick={onAnalyze}
-            disabled={analyzing}
-            className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw
-              className={`w-3 h-3 ${analyzing ? "animate-spin" : ""}`}
-            />
-            {analyzing ? "Analyzing..." : "Analyze Repos"}
-          </button>
-        </div>
-        {skills.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <span
-                key={skill.id || skill.skill_name}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100"
-              >
-                {skill.skill_name}
-                <span className="ml-1.5 text-indigo-400 text-xs">
-                  ({skill.skill_count})
-                </span>
-              </span>
-            ))}
+      {/* Vision Profile Section */}
+      {user.archetype && (
+        <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">{getArchetype(user.archetype as ArchetypeType).emoji}</span>
+            <span className="font-semibold text-indigo-900">
+              {getArchetype(user.archetype as ArchetypeType).title}
+            </span>
           </div>
-        ) : (
-          <p className="text-gray-500 text-sm">
-            Click &quot;Analyze Repos&quot; to categorize your skills from your
-            GitHub repositories.
-          </p>
-        )}
-      </div>
+          {user.builder_philosophy && (
+            <p className="text-xs text-indigo-700 mb-2">
+              {BUILDER_PHILOSOPHIES.find(p => p.id === user.builder_philosophy)?.label}
+            </p>
+          )}
+          {user.domain_interests && user.domain_interests.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {user.domain_interests.slice(0, 3).map((interestId) => {
+                const interest = DOMAIN_INTERESTS.find(i => i.id === interestId);
+                return interest ? (
+                  <span key={interestId} className="text-xs px-2 py-0.5 bg-white/70 text-indigo-700 rounded-full">
+                    {interest.label}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -232,55 +253,32 @@ function ProfileCard({
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [skills, setSkills] = useState<Skill[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [showVisionSetup, setShowVisionSetup] = useState(false);
+  const [showCreateVision, setShowCreateVision] = useState(false);
+  const [showVibeCheck, setShowVibeCheck] = useState(false);
+  const [visions, setVisions] = useState<any[]>([]);
+  const [tasteProfile, setTasteProfile] = useState<any>(null);
+  const [hasVibeCheck, setHasVibeCheck] = useState(false);
 
-  // Analyze repos and update skills
-  const analyzeRepos = async (githubId: string) => {
-    setAnalyzing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/analyze-github", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ github_id: githubId }),
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Analysis failed");
-      }
-      const data = await res.json();
-      const newSkills: Skill[] = data.skills.map(
-        (s: { skill_name: string; skill_count: number }, i: number) => ({
-          id: `analyzed-${i}`,
-          user_id: "",
-          skill_name: s.skill_name,
-          skill_count: s.skill_count,
-        })
-      );
-      setSkills(newSkills);
-      return newSkills;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
-      return null;
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
-  // Load matches from edge function
+  // Load matches from taste-based edge function
   const loadMatches = async (userId: string) => {
     try {
       const { data: matchesData, error: functionError } =
-        await insforge.functions.invoke("matches", {
+        await insforge.functions.invoke("taste-based-matches", {
           body: { userId },
         });
 
       if (functionError) {
-        console.error("Matches function error:", functionError);
+        console.error("Taste matches function error:", functionError);
+        // Fallback to skill-based matching
+        const { data: fallbackData } = await insforge.functions.invoke("matches", {
+          body: { userId },
+        });
+        if (fallbackData?.matches) {
+          setMatches(fallbackData.matches.sort((a: Match, b: Match) => b.matchScore - a.matchScore));
+        }
         return;
       }
 
@@ -293,6 +291,27 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Error loading matches:", err);
+    }
+  };
+
+  // Load project visions from other users
+  const loadVisions = async () => {
+    try {
+      const { data: visionsData } = await insforge.database
+        .from("project_visions")
+        .select(`
+          *,
+          user:user_id (id, name, avatar_url, archetype, github_id)
+        `)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (visionsData) {
+        setVisions(visionsData);
+      }
+    } catch (err) {
+      console.error("Error loading visions:", err);
     }
   };
 
@@ -353,21 +372,34 @@ export default function DashboardPage() {
 
       setUser(dbUser);
 
-      // Load existing skills
-      const { data: existingSkills } = await client.database
-        .from("skills")
-        .select("*")
-        .eq("user_id", dbUser.id);
-
-      if (existingSkills && existingSkills.length > 0) {
-        setSkills(existingSkills as Skill[]);
-      } else {
-        // Auto-analyze for new users with no skills
-        await analyzeRepos(githubId);
+      // Check if user needs vision profile setup
+      if (!dbUser.archetype || !dbUser.domain_interests || dbUser.domain_interests.length === 0) {
+        setShowVisionSetup(true);
       }
+
+      // Load taste profile
+      const { data: tasteData } = await client.database
+        .from("user_taste_profiles")
+        .select("*")
+        .eq("user_id", dbUser.id)
+        .single();
+      if (tasteData) {
+        setTasteProfile(tasteData);
+      }
+
+      // Check vibe check status
+      const { data: vibeData } = await client.database
+        .from("vibe_check_responses")
+        .select("*")
+        .eq("user_id", dbUser.id)
+        .single();
+      setHasVibeCheck(!!vibeData);
 
       // Load matches
       await loadMatches(dbUser.id);
+      
+      // Load project visions
+      await loadVisions();
     }
 
     async function init() {
@@ -376,7 +408,6 @@ export default function DashboardPage() {
         if (isDevBypassEnabled() && isDevAuthenticated()) {
           const devUser = getStoredDevUser();
           setUser(devUser || mockCurrentUser);
-          setSkills(mockCurrentUserSkills);
           setMatches(
             mockMatches.sort((a, b) => b.matchScore - a.matchScore)
           );
@@ -419,7 +450,7 @@ export default function DashboardPage() {
 
         await loadUserData(insforge, authData.user);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        console.error("Init error:", err);
       } finally {
         setLoading(false);
       }
@@ -428,13 +459,6 @@ export default function DashboardPage() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleAnalyze = async () => {
-    if (!user) return;
-    await analyzeRepos(user.github_id);
-    // Reload matches after skill analysis since matches depend on skills
-    await loadMatches(user.id);
-  };
 
   const handleSignOut = async () => {
     if (isDevBypassEnabled() && isDevAuthenticated()) {
@@ -454,6 +478,54 @@ export default function DashboardPage() {
 
   if (!user) {
     return null;
+  }
+
+  // Show vision profile setup if needed
+  if (showVisionSetup) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <VisionProfileSetup 
+          userId={user.id} 
+          onComplete={() => {
+            setShowVisionSetup(false);
+            window.location.reload();
+          }} 
+        />
+      </div>
+    );
+  }
+
+  // Show create vision modal
+  if (showCreateVision) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <CreateVisionCard
+          userId={user.id}
+          onSuccess={() => {
+            setShowCreateVision(false);
+            loadVisions();
+          }}
+          onCancel={() => setShowCreateVision(false)}
+        />
+      </div>
+    );
+  }
+
+  // Show vibe check only when explicitly requested (not auto-show for new users)
+  if (showVibeCheck) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <VibeCheck
+          userId={user.id}
+          onComplete={() => {
+            setShowVibeCheck(false);
+            setHasVibeCheck(true);
+            // Reload to show updated matches
+            window.location.reload();
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -482,6 +554,15 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-4">
+              <Link
+                href="/projects"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-indigo-600 text-sm font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                Project Board
+              </Link>
               {isDevBypassEnabled() && isDevAuthenticated() && (
                 <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded">
                   DEV MODE
@@ -501,21 +582,30 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="mb-6 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column - Profile */}
           <div className="lg:col-span-1 space-y-6">
-            <ProfileCard
-              user={user}
-              skills={skills}
-              analyzing={analyzing}
-              onAnalyze={handleAnalyze}
-            />
+            <ProfileCard user={user} />
+            {/* Digital DNA - Behavioral Analysis */}
+            <DigitalDNA userId={user.id} />
+            {/* Vibe Check - Quick retake button */}
+            {!showVibeCheck && hasVibeCheck && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Vibe Check</h3>
+                    <p className="text-xs text-gray-500">Your mindset snapshot</p>
+                  </div>
+                  <button
+                    onClick={() => setShowVibeCheck(true)}
+                    className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors"
+                  >
+                    Retake
+                  </button>
+                </div>
+              </div>
+            )}
             <PersonalityCard
               userId={user?.id || ""}
               initialPersonality={user?.personality_type ? {
@@ -525,23 +615,37 @@ export default function DashboardPage() {
                 rarity: user.personality_rarity || "common"
               } : null}
             />
+            {/* Social Links - LinkedIn, Google Scholar */}
+            <SocialLinks 
+              userId={user.id} 
+              initialData={{
+                linkedin_url: (user as any).linkedin_url,
+                google_scholar_url: (user as any).google_scholar_url,
+                github_url: user.html_url || undefined,
+              }}
+            />
             <SetupProfileButton />
           </div>
 
           {/* Right column - Matches */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Your Matches
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-500" />
+                Vision-Aligned Matches
               </h2>
               <p className="text-gray-600 mt-1">
-                Developers with compatible skills based on your GitHub activity
+                Creative partners matched by values, velocity, and vision—not just skills
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {matches.map((match) => (
-                <MatchCard key={match.userId} match={match} />
+                <MatchCard 
+                  key={match.userId} 
+                  match={match} 
+                  userRadar={tasteProfile ? tasteProfileToRadarData(tasteProfile) : undefined}
+                />
               ))}
             </div>
 
@@ -549,10 +653,62 @@ export default function DashboardPage() {
               <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
                 <p className="text-gray-500">No matches found yet.</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Check back later as more developers join!
+                  Complete your profile and vibe check to find your creative partners!
                 </p>
               </div>
             )}
+
+            {/* Project Visions Section */}
+            <div className="mt-12">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-amber-500" />
+                    Project Visions
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Creative ideas from developers looking for collaborators
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCreateVision(true)}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Share Your Vision
+                </button>
+              </div>
+                {visions.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {visions.map((vision) => (
+                      <VisionCard
+                        key={vision.id}
+                        vision={{
+                          id: vision.id,
+                          userId: vision.user_id,
+                          title: vision.title,
+                          description: vision.description,
+                          domainTags: vision.domain_tags || [],
+                          lookingForArchetypes: vision.looking_for_archetypes || [],
+                          status: vision.status,
+                          createdAt: vision.created_at,
+                          user: vision.user,
+                        }}
+                        currentUserId={user?.id}
+                        onResonanceChange={loadVisions}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-white rounded-xl border border-gray-200 border-dashed">
+                    <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-medium">No visions shared yet</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Be the first to share your project idea!
+                    </p>
+                  </div>
+                )}
+              </div>
           </div>
         </div>
       </main>
