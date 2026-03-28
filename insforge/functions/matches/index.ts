@@ -37,6 +37,13 @@ interface Skill {
   skill_count: number;
 }
 
+interface Personality {
+  type: string;
+  title: string;
+  description: string;
+  rarity: string;
+}
+
 interface MatchResult {
   userId: string;
   name: string;
@@ -47,6 +54,7 @@ interface MatchResult {
   skills: string[];
   matchScore: number;
   sharedSkills: string[];
+  personality: Personality;
 }
 
 export default async function(req: Request): Promise<Response> {
@@ -129,8 +137,8 @@ export default async function(req: Request): Promise<Response> {
 
     const currentUserLocation = currentUser.location;
 
-    // Get all other users
-    const usersResponse = await fetch(`${baseUrl}/api/database/records/users?select=id,github_id,name,avatar_url,bio,location,html_url&id=neq.${userId}`, {
+    // Get all other users with personality
+    const usersResponse = await fetch(`${baseUrl}/api/database/records/users?select=id,github_id,name,avatar_url,bio,location,html_url,personality_type,personality_title,personality_description,personality_rarity&id=neq.${userId}`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
@@ -208,7 +216,13 @@ export default async function(req: Request): Promise<Response> {
         htmlUrl: user.html_url,
         skills: userSkillNames.slice(0, 3), // Top 3 skills
         matchScore: totalScore,
-        sharedSkills: sharedSkills
+        sharedSkills: sharedSkills,
+        personality: {
+          type: user.personality_type,
+          title: user.personality_title,
+          description: user.personality_description,
+          rarity: user.personality_rarity
+        }
       };
     });
 
