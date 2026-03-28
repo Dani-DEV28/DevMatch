@@ -235,24 +235,6 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
     return "bg-gray-100 text-gray-800 border-gray-200";
   };
 
-  const getRarityColor = (rarity?: string) => {
-    switch (rarity) {
-      case "legendary": return "bg-gradient-to-r from-amber-500 to-orange-500 text-white";
-      case "epic": return "bg-gradient-to-r from-purple-500 to-pink-500 text-white";
-      case "rare": return "bg-gradient-to-r from-blue-500 to-cyan-500 text-white";
-      default: return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const getRarityIcon = (rarity?: string) => {
-    switch (rarity) {
-      case "legendary": return "👑";
-      case "epic": return "⚡";
-      case "rare": return "💎";
-      default: return "📄";
-    }
-  };
-
   const formatLabel = (key: string) => {
     return key.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   };
@@ -314,40 +296,6 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
 
           {/* Profile details */}
           <div className="p-8 space-y-8">
-            {/* Personality Card */}
-            {(user.personality_type || user.archetype) && (
-              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6 border border-indigo-100">
-                <div className="flex items-start gap-4">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl ${getRarityColor(user.personality_rarity)}`}>
-                    {getRarityIcon(user.personality_rarity)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-xl font-bold text-gray-900">
-                        {user.personality_title || `${user.archetype?.charAt(0).toUpperCase()}${user.archetype?.slice(1)}`}
-                      </h2>
-                      {user.personality_rarity && (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${getRarityColor(user.personality_rarity)}`}>
-                          {user.personality_rarity}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-600 mt-1">
-                      {user.personality_description || user.bio}
-                    </p>
-                    {user.archetype && (
-                      <div className="mt-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-500" />
-                        <span className="text-sm text-indigo-700 font-medium">
-                          Archetype: {user.archetype}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Two Column Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column */}
