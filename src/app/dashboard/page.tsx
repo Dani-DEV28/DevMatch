@@ -68,7 +68,6 @@ function getRarityEmoji(rarity: string) {
 interface EnhancedMatch extends Match {
   domainInterests?: string[];
   breakdown?: Record<string, number>;
-  synergyType?: string;
 }
 
 function MatchCard({ match, userRadar }: { match: EnhancedMatch; userRadar?: any }) {
@@ -78,18 +77,7 @@ function MatchCard({ match, userRadar }: { match: EnhancedMatch; userRadar?: any
     return "bg-gray-100 text-gray-800 border-gray-200";
   };
 
-  const getSynergyBadge = (type?: string) => {
-    switch (type) {
-      case "complementary":
-        return { text: "✨ Complementary", class: "bg-purple-100 text-purple-700" };
-      case "similar":
-        return { text: "🤝 Similar Style", class: "bg-blue-100 text-blue-700" };
-      default:
-        return { text: "⚖️ Balanced", class: "bg-gray-100 text-gray-700" };
-    }
-  };
 
-  const synergyBadge = getSynergyBadge(match.synergyType);
 
   return (
     <Link href={`/profile/${match.userId}`}>
@@ -267,7 +255,7 @@ export default function DashboardPage() {
         .from("project_visions")
         .select(`
           *,
-          user:user_id (id, name, avatar_url, archetype, github_id)
+          user:user_id (id, name, avatar_url, github_id)
         `)
         .eq("status", "active")
         .order("created_at", { ascending: false })
@@ -344,7 +332,7 @@ export default function DashboardPage() {
       setUser(dbUser);
 
       // Check if user needs vision profile setup
-      if (!dbUser.archetype || !dbUser.domain_interests || dbUser.domain_interests.length === 0) {
+      if (!dbUser.domain_interests || dbUser.domain_interests.length === 0) {
         setShowVisionSetup(true);
       }
 
@@ -682,7 +670,7 @@ export default function DashboardPage() {
                           title: vision.title,
                           description: vision.description,
                           domainTags: vision.domain_tags || [],
-                          lookingForArchetypes: vision.looking_for_archetypes || [],
+
                           status: vision.status,
                           createdAt: vision.created_at,
                           user: vision.user,

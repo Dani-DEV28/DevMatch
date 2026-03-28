@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { insforge, type User } from "@/lib/insforge";
 import {
-  getArchetype,
-  type ArchetypeType,
   DOMAIN_INTERESTS,
   PROJECT_STATUS,
 } from "@/lib/archetypes";
@@ -17,7 +15,7 @@ interface VisionCardData {
   title: string;
   description: string;
   domainTags: string[];
-  lookingForArchetypes: ArchetypeType[];
+
   status: string;
   createdAt: string;
   user: User;
@@ -101,12 +99,6 @@ export default function VisionCard({
               >
                 {vision.user.name}
               </Link>
-              {vision.user.archetype && (
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <span>{getArchetype(vision.user.archetype as ArchetypeType).emoji}</span>
-                  <span>{getArchetype(vision.user.archetype as ArchetypeType).title}</span>
-                </div>
-              )}
             </div>
           </div>
           <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-full">
@@ -142,25 +134,7 @@ export default function VisionCard({
           </div>
         )}
 
-        {/* Looking for */}
-        {vision.lookingForArchetypes.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs text-gray-500 mb-2">Looking for:</p>
-            <div className="flex flex-wrap gap-2">
-              {vision.lookingForArchetypes.map((archetypeType) => {
-                const archetype = getArchetype(archetypeType);
-                return (
-                  <span
-                    key={archetypeType}
-                    className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${archetype.color} text-white`}
-                  >
-                    {archetype.emoji} {archetype.title}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Actions */}
