@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, ExternalLink, Loader2, Calendar, FlaskConical } from "lucide-react";
 import { insforge, User, Skill } from "@/lib/insforge";
 import { mockUsers, mockMatches } from "@/lib/mock-data";
 import { isDevBypassEnabled, isDevAuthenticated } from "@/lib/dev-auth";
@@ -24,6 +24,7 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
     matchScore: number;
     sharedSkills: string[];
   } | null>(null);
+  const [isEventOrganizer, setIsEventOrganizer] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,6 +44,9 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
                 sharedSkills: mockMatch.sharedSkills,
               });
             }
+            // Check event organizer status from localStorage in dev mode
+            const storedEventOrganizer = localStorage.getItem("dev_event_organizer_status");
+            setIsEventOrganizer(storedEventOrganizer === "true");
           }
           setLoading(false);
           return;
@@ -282,6 +286,34 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
               </div>
             </div>
           </div>
+
+          {/* Event Organizer Card */}
+          {isEventOrganizer && (
+            <div className="mt-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Event Organizer
+                      </h3>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                        <FlaskConical className="w-3 h-3" />
+                        Experimental
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {user.name} hosts events on Meetup and Luma. Check out
+                      the events page to see upcoming gatherings!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Connect CTA */}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@insforge/sdk";
 
+export const dynamic = "force-dynamic";
+
 const insforge = createClient({
   baseUrl: process.env.NEXT_PUBLIC_INSFORGE_BASE_URL!,
   anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,

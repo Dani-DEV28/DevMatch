@@ -9,6 +9,8 @@ import {
   LogOut,
   Loader2,
   Sparkles,
+  RefreshCw,
+  Settings,
 } from "lucide-react";
 import { insforge, User, Match } from "@/lib/insforge";
 import {
@@ -330,11 +332,16 @@ export default function DashboardPage() {
       const githubId = idMatch[1];
 
       // Fetch full GitHub profile via server-side proxy
+      console.log("Fetching GitHub profile for ID:", githubId);
       const ghRes = await fetch(`/api/github-user?id=${githubId}`);
+      console.log("GitHub API response status:", ghRes.status);
       if (!ghRes.ok) {
-        throw new Error("Failed to fetch GitHub profile");
+        const errorText = await ghRes.text();
+        console.error("GitHub API error:", errorText);
+        throw new Error(`Failed to fetch GitHub profile: ${ghRes.status} ${errorText}`);
       }
       const ghProfile = await ghRes.json();
+      console.log("GitHub profile fetched:", ghProfile.login);
 
       // Check if user already exists
       const { data: existingUsers } = await client.database
@@ -568,6 +575,19 @@ export default function DashboardPage() {
                   DEV MODE
                 </span>
               )}
+              <Link
+                href="/events"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Events
+              </Link>
+              <Link
+                href="/settings"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
