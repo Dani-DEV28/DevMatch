@@ -16,6 +16,10 @@ export type User = {
   bio: string
   location: string
   html_url: string
+  personality_type?: string
+  personality_title?: string
+  personality_description?: string
+  personality_rarity?: 'common' | 'rare' | 'epic' | 'legendary'
 }
 
 export type Skill = {

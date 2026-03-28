@@ -8,6 +8,7 @@ import { insforge, User, Skill, Match } from '@/lib/insforge'
 import { mockCurrentUser, mockCurrentUserSkills, mockMatches } from '@/lib/mock-data'
 import { isDevBypassEnabled, isDevAuthenticated, getStoredDevUser, devSignOut } from '@/lib/dev-auth'
 import SetupProfileButton from '@/components/SetupProfileButton'
+import PersonalityCard from '@/components/PersonalityCard'
 
 // Get rarity color for personality card
 function getRarityColor(rarity: string) {
@@ -341,6 +342,15 @@ export default function DashboardPage() {
           {/* Left column - Profile */}
           <div className="lg:col-span-1 space-y-6">
             <ProfileCard user={user} skills={skills} />
+            <PersonalityCard 
+              userId={user?.id || ''} 
+              initialPersonality={user?.personality_type ? {
+                type: user.personality_type,
+                title: user.personality_title || '',
+                description: user.personality_description || '',
+                rarity: user.personality_rarity || 'common'
+              } : null}
+            />
             <SetupProfileButton />
           </div>
 
