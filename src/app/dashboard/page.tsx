@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@insforge/sdk";
 import {
   MapPin,
   ExternalLink,
@@ -13,6 +12,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { insforge, User, Skill, Match } from "@/lib/insforge";
+
+// Use the shared insforge client for consistent session handling
 import {
   mockCurrentUser,
   mockCurrentUserSkills,
@@ -236,17 +237,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const clientRef = useRef<ReturnType<typeof createClient> | null>(null);
-
-  function getClient() {
-    if (!clientRef.current) {
-      clientRef.current = createClient({
-        baseUrl: process.env.NEXT_PUBLIC_INSFORGE_BASE_URL!,
-        anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY!,
-      });
-    }
-    return clientRef.current;
-  }
 
   // Analyze repos and update skills
   const analyzeRepos = async (githubId: string) => {
@@ -309,7 +299,7 @@ export default function DashboardPage() {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async function loadUserData(
-      client: ReturnType<typeof createClient>,
+      client: typeof insforge,
       authUser: any
     ) {
       // Extract GitHub numeric ID from avatar URL
@@ -394,36 +384,40 @@ export default function DashboardPage() {
           return;
         }
 
-        // Create a fresh client so detectAuthCallback() runs with the current URL
-        const client = getClient();
-
-        // Get current user - SDK internally awaits the OAuth code exchange
+        // Use the shared insforge client for OAuth callback handling
+        // Get current user - SDK should automatically handle insforge_code in URL
         const { data: authData, error: authError } =
-          await client.auth.getCurrentUser();
+          await insforge.auth.getCurrentUser();
 
         // If auto-detect didn't work, try manual exchange of insforge_code
         if (authError || !authData?.user) {
+          console.log("Auto-auth failed, trying manual code exchange...", authError);
           const params = new URLSearchParams(window.location.search);
           const code = params.get("insforge_code");
           if (code) {
+            console.log("Found insforge_code, exchanging...");
             const { error: exchangeErr } =
-              await client.auth.exchangeOAuthCode(code);
+              await insforge.auth.exchangeOAuthCode(code);
             if (!exchangeErr) {
               // Clean URL and retry getCurrentUser
               const url = new URL(window.location.href);
               url.searchParams.delete("insforge_code");
               window.history.replaceState({}, document.title, url.toString());
-              const { data: retryData } = await client.auth.getCurrentUser();
+              const { data: retryData } = await insforge.auth.getCurrentUser();
               if (retryData?.user) {
-                return await loadUserData(client, retryData.user);
+                console.log("Manual exchange successful!");
+                return await loadUserData(insforge, retryData.user);
               }
+            } else {
+              console.error("Code exchange failed:", exchangeErr);
             }
           }
+          console.log("No valid session, redirecting to login");
           router.push("/login");
           return;
         }
 
-        await loadUserData(client, authData.user);
+        await loadUserData(insforge, authData.user);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -446,8 +440,7 @@ export default function DashboardPage() {
     if (isDevBypassEnabled() && isDevAuthenticated()) {
       devSignOut();
     }
-    const client = getClient();
-    await client.auth.signOut();
+    await insforge.auth.signOut();
     router.push("/login");
   };
 
