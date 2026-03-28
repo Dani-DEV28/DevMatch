@@ -34,7 +34,7 @@ import SynergyRadar, { tasteProfileToRadarData } from "@/components/SynergyRadar
 import SocialLinks from "@/components/SocialLinks";
 import { getArchetype, type ArchetypeType, DOMAIN_INTERESTS, BUILDER_PHILOSOPHIES } from "@/lib/archetypes";
 import { useRealtime } from "@/hooks/useRealtime";
-import { RealtimeToast, ConnectionStatus } from "@/components/RealtimeToast";
+
 
 // --- Helper functions ---
 
@@ -259,41 +259,12 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Analyze repos and update skills
-  const analyzeRepos = async (githubId: string) => {
-    setAnalyzing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/analyze-github", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ github_id: githubId }),
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Analysis failed");
-      }
-      const data = await res.json();
-      const newSkills: Skill[] = data.skills.map(
-        (s: { skill_name: string; skill_count: number }, i: number) => ({
-          id: `analyzed-${i}`,
-          user_id: "",
-          skill_name: s.skill_name,
-          skill_count: s.skill_count,
-        })
-      );
-      setSkills(newSkills);
-      return newSkills;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
-      return null;
-    } finally {
-      setAnalyzing(false);
-    }
-  };
+  const [showVisionSetup, setShowVisionSetup] = useState(false);
+  const [showCreateVision, setShowCreateVision] = useState(false);
+  const [showVibeCheck, setShowVibeCheck] = useState(false);
+  const [visions, setVisions] = useState<any[]>([]);
+  const [tasteProfile, setTasteProfile] = useState<any>(null);
+  const [hasVibeCheck, setHasVibeCheck] = useState(false);
 
   // Load matches from edge function
   const loadMatches = async (userId: string) => {
@@ -630,15 +601,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
-
-      {/* Realtime Notifications */}
-      <RealtimeToast
-        matchNotification={matchNotification}
-        activityNotification={activityNotification}
-        onCloseMatch={clearMatchNotification}
-        onCloseActivity={clearActivityNotification}
-      />
-      <ConnectionStatus isConnected={isConnected} />
 
       {/* Main content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
