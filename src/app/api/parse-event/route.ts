@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // Detect platform from URL
 function detectPlatform(url: string): "luma" | "meetup" | "other" {
   if (url.includes("lu.ma") || url.includes("luma.")) return "luma";
