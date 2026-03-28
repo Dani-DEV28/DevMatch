@@ -34,13 +34,19 @@ export async function POST(req: NextRequest) {
 
     const user = users[0] as { id: string; name: string };
 
+    // Build GitHub API headers with auth token if available
+    const ghHeaders: Record<string, string> = {
+      Accept: "application/vnd.github.v3+json",
+    };
+    if (process.env.GITHUB_TOKEN) {
+      ghHeaders.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
     // Get the GitHub username from our stored data
     // Fetch user info from GitHub by numeric ID to get the login
     const ghUserRes = await fetch(
       `https://api.github.com/user/${github_id}`,
-      {
-        headers: { Accept: "application/vnd.github.v3+json" },
-      }
+      { headers: ghHeaders }
     );
     if (!ghUserRes.ok) {
       return NextResponse.json(
@@ -54,9 +60,7 @@ export async function POST(req: NextRequest) {
     // Fetch last 10 repos sorted by most recently pushed
     const reposRes = await fetch(
       `https://api.github.com/users/${login}/repos?sort=pushed&per_page=10`,
-      {
-        headers: { Accept: "application/vnd.github.v3+json" },
-      }
+      { headers: ghHeaders }
     );
     if (!reposRes.ok) {
       return NextResponse.json(

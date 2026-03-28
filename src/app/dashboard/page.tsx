@@ -47,9 +47,9 @@ export default function Dashboard() {
       }
       const githubId = idMatch[1];
 
-      // Fetch full GitHub profile by numeric ID
+      // Fetch full GitHub profile via server-side proxy (authenticated, avoids rate limits)
       const ghRes = await fetch(
-        `https://api.github.com/user/${githubId}`
+        `/api/github-user?id=${githubId}`
       );
       if (!ghRes.ok) {
         throw new Error("Failed to fetch GitHub profile");
