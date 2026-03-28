@@ -163,7 +163,7 @@ export default function DashboardPage() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
-  const [useMockData, setUseMockData] = useState(true)
+  const [useMockData, setUseMockData] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -197,21 +197,54 @@ export default function DashboardPage() {
         }
 
         // Fetch real data from InsForge
-        const { data: userRecord } = await insforge.database
-          .from('users')
-          .select('*')
-          .eq('id', authUser?.id)
-          .single()
+        // Note: authUser.id is the InsForge auth ID, we need to find the user by github_id
+        // For now, we'll use the auth user's profile to find or create the user record
+        console.log('Auth user:', authUser)
+        
+        // Try to find user by github_id from auth metadata
+        const githubId = authUser?.metadata?.github_id || authUser?.profile?.github_id
+        console.log('GitHub ID from auth:', githubId)
+        
+        // If we have a github_id, query by that, otherwise query by email or name
+        let userQuery = insforge.database.from('users').select('*')
+        if (githubId) {
+          userQuery = userQuery.eq('github_id', githubId.toString())
+        } else {
+          // Fallback to name matching
+          userQuery = userQuery.eq('name', authUser?.profile?.name || '')
+        }
+        
+        const { data: userRecords, error: userError } = await userQuery
+        
+        if (userError || !userRecords || userRecords.length === 0) {
+          console.log('User not found in database, may need to complete onboarding:', userError)
+          // For demo purposes, use mock data if user not found
+          console.log('Falling back to mock data')
+          setUser(mockCurrentUser)
+          setSkills(mockCurrentUserSkills)
+          setMatches(mockMatches.sort((a, b) => b.matchScore - a.matchScore))
+          setLoading(false)
+          return
+        }
+        
+        const userRecord = userRecords[0]
+        console.log('Found user record:', userRecord)
 
         const { data: skillsData } = await insforge.database
           .from('skills')
           .select('*')
-          .eq('user_id', authUser?.id)
+          .eq('user_id', userRecord.id)
 
         // Fetch matches from InsForge Edge Function
+        console.log('Fetching matches for user:', userRecord.id)
         const { data: matchesData, error: functionError } = await insforge.functions.invoke('matches', {
-          body: { userId: authUser?.id }
+          body: { userId: userRecord.id }
         })
+        
+        if (functionError) {
+          console.error('Function error:', functionError)
+        }
+        console.log('Matches data:', matchesData)
 
         setUser(userRecord)
         setSkills(skillsData || [])

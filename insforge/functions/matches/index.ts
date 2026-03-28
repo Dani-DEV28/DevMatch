@@ -70,7 +70,16 @@ export default async function(req: Request): Promise<Response> {
 
   try {
     // Parse request body
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body', details: 'Request body must be valid JSON with userId field' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const { userId } = body;
 
     if (!userId) {
@@ -101,10 +110,11 @@ export default async function(req: Request): Promise<Response> {
     
     const currentUserSkills = await skillsResponse.json();
 
+    // If user has no skills, return empty matches (new user case)
     if (!currentUserSkills || currentUserSkills.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'User has no skills' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ matches: [], message: 'No skills found. Please analyze your GitHub profile first.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
