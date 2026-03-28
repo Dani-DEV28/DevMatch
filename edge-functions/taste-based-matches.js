@@ -129,7 +129,7 @@ export default async function(req) {
           domainInterests: otherUser.domain_interests || [],
           matchScore: Math.round(score.total),
           breakdown: score.breakdown,
-          synergyType: score.synergyType,
+          vibeResponses: otherVibe ? otherVibe.responses : null,
         });
       }
     }

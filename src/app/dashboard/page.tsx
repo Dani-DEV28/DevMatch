@@ -68,6 +68,7 @@ function getRarityEmoji(rarity: string) {
 interface EnhancedMatch extends Match {
   domainInterests?: string[];
   breakdown?: Record<string, number>;
+  vibeResponses?: Record<string, string>;
 }
 
 function MatchCard({ match, userRadar }: { match: EnhancedMatch; userRadar?: any }) {
@@ -118,6 +119,28 @@ function MatchCard({ match, userRadar }: { match: EnhancedMatch; userRadar?: any
                     {interest}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {/* Vibe Check Highlights */}
+            {match.vibeResponses && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {match.vibeResponses["team-role"] && (
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-600">
+                    {match.vibeResponses["team-role"] === "breaks" && "💥 High velocity"}
+                    {match.vibeResponses["team-role"] === "protects" && "🛡️ Risk averse"}
+                    {match.vibeResponses["team-role"] === "designs" && "🏗️ Systems thinker"}
+                    {match.vibeResponses["team-role"] === "connects" && "🔗 Collaborator"}
+                  </span>
+                )}
+                {match.vibeResponses["time-horizon"] && (
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-pink-50 text-pink-600">
+                    {match.vibeResponses["time-horizon"] === "ship-week" && "⚡ Ship fast"}
+                    {match.vibeResponses["time-horizon"] === "ship-months" && "✨ Polish focused"}
+                    {match.vibeResponses["time-horizon"] === "experiment" && "🔬 Explorer"}
+                    {match.vibeResponses["time-horizon"] === "iterate" && "🔄 User-centric"}
+                  </span>
+                )}
               </div>
             )}
 
@@ -215,6 +238,7 @@ export default function DashboardPage() {
   const [visions, setVisions] = useState<any[]>([]);
   const [tasteProfile, setTasteProfile] = useState<any>(null);
   const [hasVibeCheck, setHasVibeCheck] = useState(false);
+  const [vibeResponses, setVibeResponses] = useState<Record<string, string> | null>(null);
 
   // Load matches from edge function
   const loadMatches = async (userId: string) => {
@@ -376,6 +400,9 @@ export default function DashboardPage() {
         .single();
       const hasCompletedVibeCheck = !!vibeData;
       setHasVibeCheck(hasCompletedVibeCheck);
+      if (vibeData) {
+        setVibeResponses(vibeData.responses || {});
+      }
       
       // Auto-show vibe check modal for new users who haven't completed it
       // Check if user has skipped before using localStorage
@@ -602,10 +629,10 @@ export default function DashboardPage() {
             <ProfileCard user={user} />
             {/* Digital DNA - Behavioral Analysis */}
             <DigitalDNA userId={user.id} />
-            {/* Vibe Check - Quick retake button */}
-            {!showVibeCheck && hasVibeCheck && (
+            {/* Vibe Check - Display answers */}
+            {!showVibeCheck && hasVibeCheck && vibeResponses && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">Vibe Check</h3>
                     <p className="text-xs text-gray-500">Your mindset snapshot</p>
@@ -616,6 +643,63 @@ export default function DashboardPage() {
                   >
                     Retake
                   </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {vibeResponses["boring-problem"] && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400">💡</span>
+                      <span className="text-gray-600">
+                        {vibeResponses["boring-problem"] === "data-pipeline" && "Systems thinker"}
+                        {vibeResponses["boring-problem"] === "documentation" && "Developer advocate"}
+                        {vibeResponses["boring-problem"] === "testing" && "Quality focused"}
+                        {vibeResponses["boring-problem"] === "deployment" && "DevOps mindset"}
+                      </span>
+                    </div>
+                  )}
+                  {vibeResponses["team-role"] && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400">👥</span>
+                      <span className="text-gray-600">
+                        {vibeResponses["team-role"] === "breaks" && "High velocity"}
+                        {vibeResponses["team-role"] === "protects" && "Risk averse"}
+                        {vibeResponses["team-role"] === "designs" && "Systems thinker"}
+                        {vibeResponses["team-role"] === "connects" && "Collaborator"}
+                      </span>
+                    </div>
+                  )}
+                  {vibeResponses["time-horizon"] && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400">⏱️</span>
+                      <span className="text-gray-600">
+                        {vibeResponses["time-horizon"] === "ship-week" && "Ship fast"}
+                        {vibeResponses["time-horizon"] === "ship-months" && "Polish focused"}
+                        {vibeResponses["time-horizon"] === "experiment" && "Explorer"}
+                        {vibeResponses["time-horizon"] === "iterate" && "User-centric"}
+                      </span>
+                    </div>
+                  )}
+                  {vibeResponses["overhyped-tech"] && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400">🎯</span>
+                      <span className="text-gray-600">
+                        {vibeResponses["overhyped-tech"] === "blockchain" && "Pragmatic"}
+                        {vibeResponses["overhyped-tech"] === "ai-everything" && "Skeptical"}
+                        {vibeResponses["overhyped-tech"] === "microservices" && "Simple-first"}
+                        {vibeResponses["overhyped-tech"] === "new-frameworks" && "Stability-focused"}
+                      </span>
+                    </div>
+                  )}
+                  {vibeResponses["legacy-code"] && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400">🔧</span>
+                      <span className="text-gray-600">
+                        {vibeResponses["legacy-code"] === "rewrite" && "Clean-slate"}
+                        {vibeResponses["legacy-code"] === "refactor" && "Incremental"}
+                        {vibeResponses["legacy-code"] === "work-around" && "Pragmatic"}
+                        {vibeResponses["legacy-code"] === "understand" && "Deep diver"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
