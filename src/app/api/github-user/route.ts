@@ -4,8 +4,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const githubId = req.nextUrl.searchParams.get("id");
-  if (!githubId) {
-    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  const username = req.nextUrl.searchParams.get("username");
+  
+  if (!githubId && !username) {
+    return NextResponse.json({ error: "id or username is required" }, { status: 400 });
   }
 
   const headers: Record<string, string> = {
@@ -15,7 +17,12 @@ export async function GET(req: NextRequest) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
 
-  const res = await fetch(`https://api.github.com/user/${githubId}`, {
+  // Use username if provided, otherwise use ID
+  const url = username 
+    ? `https://api.github.com/users/${username}`
+    : `https://api.github.com/user/${githubId}`;
+
+  const res = await fetch(url, {
     headers,
   });
 

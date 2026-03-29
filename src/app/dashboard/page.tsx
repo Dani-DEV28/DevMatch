@@ -388,28 +388,81 @@ export default function DashboardPage() {
       client: typeof insforge,
       authUser: any
     ) {
-      // Get GitHub ID from various possible sources
-      let githubId = authUser.profile?.github_id || 
-                     authUser.profile?.id || 
-                     authUser.user_metadata?.github_id;
+      // Check if user logged in with GitHub or Google
+      const isGitHubUser = authUser.email?.includes("@users.noreply.github.com") || 
+                           authUser.profile?.avatar_url?.includes("githubusercontent.com");
       
-      // Fallback: Extract from avatar URL if needed
-      if (!githubId) {
-        const avatarUrl = authUser.profile?.avatar_url || "";
-        const idMatch = avatarUrl.match(/\/u\/(\d+)/);
-        if (idMatch) {
-          githubId = idMatch[1];
+      if (!isGitHubUser) {
+        // Google user - create profile without GitHub data
+        console.log("Google user detected, skipping GitHub profile fetch");
+        
+        const userData: Omit<User, "id"> = {
+          github_id: authUser.id, // Use InsForge user ID as fallback
+          name: authUser.profile?.name || authUser.email?.split('@')[0] || "User",
+          avatar_url: authUser.profile?.avatar_url || "",
+          bio: null,
+          location: null,
+          html_url: null,
+        };
+        
+        // Check if user already exists by email
+        const { data: existingUsers } = await client.database
+          .from("users")
+          .select()
+          .eq("github_id", authUser.id);
+        
+        let dbUser: User;
+        
+        if (existingUsers && existingUsers.length > 0) {
+          const { data: updated, error: updateError } = await client.database
+            .from("users")
+            .update(userData)
+            .eq("github_id", authUser.id)
+            .select();
+          if (updateError) throw new Error(updateError.message);
+          dbUser = updated![0] as User;
+        } else {
+          const { data: inserted, error: insertError } = await client.database
+            .from("users")
+            .insert([userData])
+            .select();
+          if (insertError) throw new Error(insertError.message);
+          dbUser = inserted![0] as User;
+        }
+        
+        setUser(dbUser);
+        return; // Skip GitHub profile fetching
+      }
+      
+      // GitHub user - extract username and fetch profile
+      let githubUsername = "";
+      const avatarUrl = authUser.profile?.avatar_url || "";
+      
+      // Try to extract username from avatar URL
+      // Pattern: https://avatars.githubusercontent.com/u/12345?v=4 (numeric ID)
+      // Pattern: https://avatars.githubusercontent.com/username (username)
+      const usernameMatch = avatarUrl.match(/avatars\.githubusercontent\.com\/([^\/\?]+)/);
+      if (usernameMatch && !usernameMatch[1].match(/^u\//)) {
+        githubUsername = usernameMatch[1];
+      }
+      
+      // Fallback: Try to get from email (GitHub username@users.noreply.github.com)
+      if (!githubUsername && authUser.email) {
+        const emailMatch = authUser.email.match(/^([^@]+)@users\.noreply\.github\.com$/);
+        if (emailMatch) {
+          githubUsername = emailMatch[1];
         }
       }
       
-      if (!githubId) {
+      if (!githubUsername) {
         console.error("Auth user profile:", authUser);
-        throw new Error("Could not determine GitHub user ID from profile");
+        console.error("Avatar URL:", avatarUrl);
+        throw new Error("Could not determine GitHub username from profile");
       }
 
-      // Fetch full GitHub profile via server-side proxy
-      console.log("Fetching GitHub profile for ID:", githubId);
-      const ghRes = await fetch(`/api/github-user?id=${githubId}`);
+      // Fetch full GitHub profile via server-side proxy using username
+      console.log("Fetching GitHub profile for username:", githubUsername);
+      const ghRes = await fetch(`/api/github-user?username=${encodeURIComponent(githubUsername)}`);
       console.log("GitHub API response status:", ghRes.status);
       if (!ghRes.ok) {
         const errorText = await ghRes.text();
@@ -418,6 +471,9 @@ export default function DashboardPage() {
       }
       const ghProfile = await ghRes.json();
       console.log("GitHub profile fetched:", ghProfile.login);
+      
+      // Use numeric GitHub ID from API response
+      const githubId = ghProfile.id.toString();
 
       // Check if user already exists
       const { data: existingUsers } = await client.database
